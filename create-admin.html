@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Admin Account</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: #6366f1;
+        }
+
+        button {
+            background: #6366f1;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 20px;
+        }
+
+        button:hover {
+            background: #4f46e5;
+        }
+
+        .success {
+            color: #10b981;
+            margin-top: 20px;
+        }
+
+        .error {
+            color: #ef4444;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Create Admin Account</h1>
+        <p>This will create an admin account in your LMS database.</p>
+        <p><strong>Email:</strong> admin@lms.com<br>
+            <strong>Password:</strong> admin123<br>
+            <strong>Role:</strong> Admin
+        </p>
+        <button onclick="createAdmin()">Create Admin Account</button>
+        <div id="message"></div>
+    </div>
+
+    <script type="module">
+        import { openDB } from 'https://cdn.jsdelivr.net/npm/idb@7/+esm';
+
+        window.createAdmin = async function () {
+            const messageEl = document.getElementById('message');
+            messageEl.innerHTML = 'Creating admin account...';
+
+            try {
+                // Import bcrypt (we'll use a simple hash for demo)
+                const db = await openDB('ai-lms-db', 1);
+
+                // Simple hash function (in production, use bcrypt)
+                const hashPassword = (password) => {
+                    return btoa(password); // Simple base64 encoding for demo
+                };
+
+                const adminUser = {
+                    id: `admin-${Date.now()}`,
+                    email: 'admin@lms.com',
+                    password: hashPassword('admin123'),
+                    role: 'admin',
+                    profile: {
+                        name: 'Admin User',
+                        avatar: null,
+                        bio: 'System Administrator',
+                        joinedDate: Date.now()
+                    },
+                    gamification: {
+                        xp: 0,
+                        level: 1,
+                        badges: [],
+                        streak: 0
+                    },
+                    preferences: {
+                        theme: 'light',
+                        notifications: true,
+                        language: 'en'
+                    },
+                    createdAt: Date.now(),
+                    updatedAt: Date.now()
+                };
+
+                await db.add('users', adminUser);
+
+                messageEl.innerHTML = '<div class="success">✅ Admin account created successfully!<br><br>You can now login with:<br>Email: admin@lms.com<br>Password: admin123</div>';
+            } catch (error) {
+                if (error.name === 'ConstraintError') {
+                    messageEl.innerHTML = '<div class="error">⚠️ Admin account already exists!</div>';
+                } else {
+                    messageEl.innerHTML = '<div class="error">❌ Error: ' + error.message + '</div>';
+                }
+            }
+        };
+    </script>
+</body>
+
+</html>
